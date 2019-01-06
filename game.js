@@ -39,7 +39,6 @@ class Position {
         let currentPos = this.getCoordinates();
         let outOfBoundShift = {};
         for (let axel in currentPos) {
-            //console.log(axel);
             if (boundaries.hasOwnProperty(axel) && boundaries[axel] < currentPos[axel]) {
                 outOfBoundShift[axel] = currentPos[axel] - boundaries[axel];
             } else if (currentPos[axel] < 0) {
@@ -67,7 +66,7 @@ class Shape {
      * Реализовать самому
      */
     addProperties() {
-        //console.log('parend.addProperties() called. Need to redefine this functuon.');
+        //parend.addProperties() called. Need to redefine this functuon.
     }
     setHtmlElement(element) {
         this.htmlElement = element;
@@ -119,7 +118,6 @@ class Game {
     constructor(options) {
         this.boundaries = options.boundaries;
         this.objects = [];
-        //console.log('game started');
     }
     start() {
         this.tickInterval = setInterval(this.gameTick.bind(this), 100);
@@ -127,7 +125,6 @@ class Game {
     stop() {
         clearInterval(this.tickInterval);
         this.tickInterval = null;
-        //console.log('game stopped')
     }
     isRunning() {
         return this.tickInterval !== null;
@@ -136,15 +133,9 @@ class Game {
         this.objects.push(object);
     }
     gameTick() {
-        //console.log(this);
-        for (let i in this.objects) {
-            //console.log(i)
-        }
         this.objects.forEach(this.movePosition.bind(this));
-        //console.log('tick');
     }
     movePosition(object) {
-        console.log('---- tick.move ----');
         let currentPosition = object.getPosition();
         let vector = object.getVector();
         let x = currentPosition.getCoordinates().x;
@@ -152,13 +143,10 @@ class Game {
         let adjustX = 10;
         let adjustY = 10;
 
-        console.log('vector: xpos and ypos', vector.isXaxelPositive(), vector.isYaxelPositive());
         let isOutOfBound = currentPosition.isOutOfBoundaries(this.boundaries);
         let outOfBoundShift = null;
-        console.log(currentPosition.getCoordinates());
         if (isOutOfBound) {
             outOfBoundShift = currentPosition.getOutOfBoundariesShift(this.boundaries);
-            console.error(outOfBoundShift);
         }
         let xDirectionForward = true;
         let yDirectionForward = true;
@@ -171,37 +159,27 @@ class Game {
 
         //adjusting "speed" as vector tell us
         if (!xDirectionForward) {
-            //console.log('change X dir forw');
             adjustX = -adjustX;
         }
         if (!yDirectionForward) {
-            //console.log('change Y dir forw');
             adjustY = -adjustY;
         }
 
         if (isOutOfBound) {
             //changing vectors directions because of borders
             if (outOfBoundShift.hasOwnProperty('x')) {
-                //console.log('change X dir bounce', outOfBoundShift.x);
-                //console.log('x bounce change');
                 adjustX = -adjustX;
             }
             if (outOfBoundShift.hasOwnProperty('y')) {
-                //console.log('change Y dir bounce', outOfBoundShift.y);
-                //console.log('y bounce change');
                 adjustY = -adjustY;
             }
         }
         x += adjustX;
         y += adjustY;
-        console.log('adjust X and Y', adjustX, adjustY);
 
         let pos = object.getPosition();
         pos.setCoordinates({x: x, y: y});
         object.setPosition(pos);
-        console.log('new coords: ', pos.getCoordinates());
-        //console.log(vector);
-        //console.log(vector.isXaxelPositive(), vector.isYaxelPositive());
     }
 }
 (function () {
@@ -214,7 +192,6 @@ class Game {
                 game.start();
             }
         }
-        console.log('keypressed: ' + e.code);
     });
     const worldHeight = world.offsetHeight;
     const worldWidth = world.offsetWidth;
@@ -224,7 +201,7 @@ class Game {
     let game = new Game({boundaries: {x: worldWidth, y: worldHeight}});
     game.start();
     game.addObject(square);
-    for (let i = 1; i < 10; i++) {
+    for (let i = 1; i < 100; i++) {
         let color = 'red';
         if (i % 2 > 0) {
             color = 'blue';
