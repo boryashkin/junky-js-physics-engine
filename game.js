@@ -85,6 +85,7 @@ class Shape {
         element.style.top = coords.y + 'px';
         this.setHtmlElement(element);
         this.position = position;
+        this.setVector(new Vector(this.getPreviousPosition(), this.getPosition()));
     }
     getPosition() {
         return this.position;
@@ -143,64 +144,62 @@ class Game {
         //console.log('tick');
     }
     movePosition(object) {
-        //console.log('tick.move');
+        console.log('---- tick.move ----');
         let currentPosition = object.getPosition();
         let vector = object.getVector();
         let x = currentPosition.getCoordinates().x;
         let y = currentPosition.getCoordinates().y;
+        let adjustX = 10;
+        let adjustY = 10;
 
-        //console.log(currentPosition.getCoordinates(),object.getPreviousPosition().getCoordinates());
-        //console.log(vector.isXaxelPositive(), vector.isYaxelPositive());
+        console.log('vector: xpos and ypos', vector.isXaxelPositive(), vector.isYaxelPositive());
         let isOutOfBound = currentPosition.isOutOfBoundaries(this.boundaries);
         let outOfBoundShift = null;
+        console.log(currentPosition.getCoordinates());
         if (isOutOfBound) {
             outOfBoundShift = currentPosition.getOutOfBoundariesShift(this.boundaries);
             console.error(outOfBoundShift);
         }
-        let xDirection = true;
-        let yDirection = true;
-        if (vector.isXaxelPositive() || vector.isStallX()) {
-
-        } else {
-            xDirection = false;
+        let xDirectionForward = true;
+        let yDirectionForward = true;
+        if (!(vector.isXaxelPositive() || vector.isStallX())) {
+            xDirectionForward = false;
         }
-        if (vector.isYaxelPositive() || vector.isStallY()) {
-
-        } else {
-            yDirection = false;
+        if (!(vector.isYaxelPositive() || vector.isStallY())) {
+            yDirectionForward = false;
         }
 
-        if (xDirection) {
-            x += 10;
-        } else {
-            x -= 10;
+        //adjusting "speed" as vector tell us
+        if (!xDirectionForward) {
+            //console.log('change X dir forw');
+            adjustX = -adjustX;
         }
-        if (yDirection) {
-            y += 10;
-        } else {
-            y -= 10;
+        if (!yDirectionForward) {
+            //console.log('change Y dir forw');
+            adjustY = -adjustY;
         }
 
         if (isOutOfBound) {
+            //changing vectors directions because of borders
             if (outOfBoundShift.hasOwnProperty('x')) {
-                if (x >= 0) {
-                    x -= 20;
-                } else {
-                    x += 20;
-                }
+                //console.log('change X dir bounce', outOfBoundShift.x);
+                //console.log('x bounce change');
+                adjustX = -adjustX;
             }
             if (outOfBoundShift.hasOwnProperty('y')) {
-                if (y >= 0) {
-                    y -= 20;
-                } else {
-                    y += 20;
-                }
+                //console.log('change Y dir bounce', outOfBoundShift.y);
+                //console.log('y bounce change');
+                adjustY = -adjustY;
             }
         }
+        x += adjustX;
+        y += adjustY;
+        console.log('adjust X and Y', adjustX, adjustY);
 
         let pos = object.getPosition();
         pos.setCoordinates({x: x, y: y});
         object.setPosition(pos);
+        console.log('new coords: ', pos.getCoordinates());
         //console.log(vector);
         //console.log(vector.isXaxelPositive(), vector.isYaxelPositive());
     }
@@ -220,17 +219,23 @@ class Game {
     const worldHeight = world.offsetHeight;
     const worldWidth = world.offsetWidth;
     let square = new Square('green');
+    square.setPosition(new Position({x: 380, y: 250}));
     world.append(square.getHtmlElement());
     let game = new Game({boundaries: {x: worldWidth, y: worldHeight}});
+    game.start();
     game.addObject(square);
-    setTimeout(function () {
-        let square2 = new Square('red');
+    for (let i = 1; i < 10; i++) {
+        let color = 'red';
+        if (i % 2 > 0) {
+            color = 'blue';
+        } else if (i % 3 > 0) {
+            color = 'yellow';
+        } else if (i % 5 > 0) {
+            color = 'brown';
+        }
+        let square2 = new Square(color);
+        square2.setPosition(new Position({x: Math.round(Math.random() * 300), y: Math.round(Math.random() * 250)}));
         world.append(square2.getHtmlElement());
         game.addObject(square2);
-    }, 1000);
-    setTimeout(function () {
-        let square2 = new Square('blue');
-        world.append(square2.getHtmlElement());
-        game.addObject(square2);
-    }, 2000);
+    }
 })(window);
