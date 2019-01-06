@@ -118,12 +118,18 @@ class Game {
     constructor(options) {
         this.boundaries = options.boundaries;
         this.objects = [];
-        this.tickInterval = setInterval(this.gameTick.bind(this), 100);
         //console.log('game started');
+    }
+    start() {
+        this.tickInterval = setInterval(this.gameTick.bind(this), 100);
     }
     stop() {
         clearInterval(this.tickInterval);
+        this.tickInterval = null;
         //console.log('game stopped')
+    }
+    isRunning() {
+        return this.tickInterval !== null;
     }
     addObject(object) {
         this.objects.push(object);
@@ -203,7 +209,11 @@ class Game {
     let world = document.getElementById('world');
     window.addEventListener('keydown', function (e) {
         if (e.code === 'Escape') {
-            game.stop();
+            if (game.isRunning()) {
+                game.stop();
+            } else {
+                game.start();
+            }
         }
         console.log('keypressed: ' + e.code);
     });
