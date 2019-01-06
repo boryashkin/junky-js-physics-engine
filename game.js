@@ -145,10 +145,11 @@ class Game {
 
         //console.log(currentPosition.getCoordinates(),object.getPreviousPosition().getCoordinates());
         //console.log(vector.isXaxelPositive(), vector.isYaxelPositive());
-        let turnVector = false;
-        if (currentPosition.isOutOfBoundaries({x: this.boundaries.x, y: this.boundaries.y})) {
-            turnVector = true;
-            console.error(currentPosition.getOutOfBoundariesShift(this.boundaries));
+        let isOutOfBound = currentPosition.isOutOfBoundaries(this.boundaries);
+        let outOfBoundShift = null;
+        if (isOutOfBound) {
+            outOfBoundShift = currentPosition.getOutOfBoundariesShift(this.boundaries);
+            console.error(outOfBoundShift);
         }
         let xDirection = true;
         let yDirection = true;
@@ -174,16 +175,20 @@ class Game {
             y -= 10;
         }
 
-        if (turnVector) {
-            if (x >= 0) {
-                x -= 20;
-            } else {
-                x += 20;
+        if (isOutOfBound) {
+            if (outOfBoundShift.hasOwnProperty('x')) {
+                if (x >= 0) {
+                    x -= 20;
+                } else {
+                    x += 20;
+                }
             }
-            if (y >= 0) {
-                y -= 20;
-            } else {
-                y += 20;
+            if (outOfBoundShift.hasOwnProperty('y')) {
+                if (y >= 0) {
+                    y -= 20;
+                } else {
+                    y += 20;
+                }
             }
         }
 
