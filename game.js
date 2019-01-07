@@ -49,8 +49,47 @@ class Position {
         return outOfBoundShift;
     }
 }
-class Shape {
+class GameInterface {
+    constructor() {
+        this.subscribers = [];
+    }
+    addSubscriber(subscriber) {
+        this.subscribers.push(subscriber);
+    }
+    removeSubscriber(subscriber) {
+        let i = this.subscribers.indexOf(subscriber);
+        if (i !== -1) {
+            this.subscribers.splice(i, 1);
+        }
+    }
+    notify(message) {
+        this.subscribers.forEach(function (item) {
+            item.onMessage(message);
+        });
+    }
+}
+class GameObject {
+    constructor() {
+        this.subscriptions = [];
+    }
+    subscribe(eventSource) {
+        eventSource.addSubscriber(this);
+        this.subscriptions.push(eventSource);
+    }
+    onMessage(message) {
+        console.log('default action:', message);
+    }
+    unsubscribe(eventSource) {
+        let i = this.this.subscriptions.indexOf(eventSource);
+        if (i !== -1) {
+            this.subscriptions[i].removeSubscriber(this);
+            this.subscriptions.splice(i, 1);
+        }
+    }
+}
+class Shape extends GameObject {
     constructor (properties) {
+        super();
         this.timestamp = new Date();
         let shape = document.createElement('div');
         this.setHtmlElement(shape);
@@ -101,52 +140,23 @@ class Shape {
     setVector(vector) {
         this.vector = vector;
     }
-}
-class Square extends Shape {
-    constructor(color) {
-        super({'color': color});
+    onMessage(message) {
+        if (message.hasOwnProperty('boundaries')) {
+            this.move(message.boundaries);
+        }
     }
-    addProperties(properties) {
-        let element = this.getHtmlElement();
-        element.style.background = properties.color;
-        element.classList.add('square');
-        this.setHtmlElement(element);
-    }
-
-}
-class Game {
-    constructor(options) {
-        this.boundaries = options.boundaries;
-        this.objects = [];
-    }
-    start() {
-        this.tickInterval = setInterval(this.gameTick.bind(this), 100);
-    }
-    stop() {
-        clearInterval(this.tickInterval);
-        this.tickInterval = null;
-    }
-    isRunning() {
-        return this.tickInterval !== null;
-    }
-    addObject(object) {
-        this.objects.push(object);
-    }
-    gameTick() {
-        this.objects.forEach(this.movePosition.bind(this));
-    }
-    movePosition(object) {
-        let currentPosition = object.getPosition();
-        let vector = object.getVector();
+    move(boundaries) {
+        let currentPosition = this.getPosition();
+        let vector = this.getVector();
         let x = currentPosition.getCoordinates().x;
         let y = currentPosition.getCoordinates().y;
-        let adjustX = 10;
-        let adjustY = 10;
+        let adjustX = 5;
+        let adjustY = 5;
 
-        let isOutOfBound = currentPosition.isOutOfBoundaries(this.boundaries);
+        let isOutOfBound = currentPosition.isOutOfBoundaries(boundaries);
         let outOfBoundShift = null;
         if (isOutOfBound) {
-            outOfBoundShift = currentPosition.getOutOfBoundariesShift(this.boundaries);
+            outOfBoundShift = currentPosition.getOutOfBoundariesShift(boundaries);
         }
         let xDirectionForward = true;
         let yDirectionForward = true;
@@ -177,9 +187,48 @@ class Game {
         x += adjustX;
         y += adjustY;
 
-        let pos = object.getPosition();
+        let pos = this.getPosition();
         pos.setCoordinates({x: x, y: y});
-        object.setPosition(pos);
+        this.setPosition(pos);
+    }
+}
+class Square extends Shape {
+    constructor(color) {
+        super({'color': color});
+    }
+    addProperties(properties) {
+        let element = this.getHtmlElement();
+        element.style.background = properties.color;
+        element.classList.add('square');
+        this.setHtmlElement(element);
+    }
+
+}
+class Game extends GameInterface {
+    constructor(options) {
+        super();
+        this.boundaries = options.boundaries;
+        this.objects = [];
+    }
+    start() {
+        this.tickInterval = setInterval(this.gameTick.bind(this), 50);
+    }
+    stop() {
+        clearInterval(this.tickInterval);
+        this.tickInterval = null;
+    }
+    isRunning() {
+        return this.tickInterval !== null;
+    }
+    addObject(object) {
+        object.subscribe(this);
+        this.objects.push(object);
+    }
+    gameTick() {
+        this.objects.forEach(this.movePosition.bind(this));
+    }
+    movePosition(object) {
+        this.notify({boundaries: this.boundaries});
     }
 }
 (function () {
@@ -201,7 +250,7 @@ class Game {
     let game = new Game({boundaries: {x: worldWidth, y: worldHeight}});
     game.start();
     game.addObject(square);
-    for (let i = 1; i < 100; i++) {
+    for (let i = 1; i < 5; i++) {
         let color = 'red';
         if (i % 2 > 0) {
             color = 'blue';
